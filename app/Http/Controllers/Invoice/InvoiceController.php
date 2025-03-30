@@ -107,61 +107,52 @@ class InvoiceController extends Controller
                 'return_date' => 'nullable|date',
             ]);
 
-
             $start = Carbon::parse($request->date_of_receipt ?? Carbon::now())->format('Y-m-d');
             $end = Carbon::parse($request->return_date ?? Carbon::now())->format('Y-m-d');
-            $ids = [];
-            $product = Product::where('section_id', $request->section_id)
-            ->leftJoin('orders', 'orders.product_id', '=', 'products.id')
-            ->leftJoin('invoices', 'invoices.id', '=', 'orders.invoice_id')
-            ->whereNull('invoices.restored_at')
-            ->distinct();
 
-            if($request->status === 'pending'){
-                if($product->count() > 0) {
-                    $ids = $product->where(function ($query) use ($start, $end) {
-                        $query->whereBetween('date_of_receipt', [$start, $end])
-                            ->orWhereBetween('return_date', [$start, $end])
-                            ->orWhere(function ($query) use ($start, $end) {
-                                $query->where('date_of_receipt', '<', $start)
-                                        ->where('return_date', '>', $end);
-                            });
-                    })
-                    ->pluck('products.id');
-                    foreach($ids as $index => $id){
-                        $count = Invoice::leftJoin('orders' , 'orders.invoice_id' , 'invoices.id')->where('orders.product_id', $id)->count();
-                        if(Product::whereId($id)->value("quantity") > $count){
-                            unset($ids[$index]);
-                        }
-                    }
+            $productQuery = Product::select('products.id', 'products.quantity')
+                ->where('products.section_id', $request->section_id)
+                ->leftJoin('orders', 'orders.product_id', '=', 'products.id')
+                ->leftJoin('invoices', 'invoices.id', '=', 'orders.invoice_id')
+                ->whereNull('invoices.restored_at');
+
+            // Apply filtering based on status
+            $productQuery->where(function ($query) use ($start, $end, $request) {
+                $query->whereBetween('date_of_receipt', [$start, $end])
+                    ->orWhereBetween('return_date', [$start, $end]);
+
+                if ($request->status === 'pending') {
+                    $query->orWhere(function ($q) use ($start, $end) {
+                        $q->where('date_of_receipt', '<', $start)
+                        ->where('return_date', '>', $end);
+                    });
+                } else {
+                    $query->orWhere(function ($q) use ($start, $end) {
+                        $q->where('date_of_receipt', '>', $start)
+                        ->orWhere('return_date', '>', $end);
+                    });
                 }
-            }else{
+            });
 
-                if($product->count() > 0) {
-                    $ids = $product->where(function ($query) use ($start, $end) {
-                        $query->whereBetween('date_of_receipt', [$start, $end])
-                            ->orWhereBetween('return_date', [$start, $end])
-                            ->orWhere(function ($query) use ($start, $end) {
-                                $query->where('date_of_receipt', '>', $start)
-                                        ->orWhere('return_date', '>', $end);
-                            });
-                    })
-                    ->pluck('products.id');
-                    foreach($ids as $index => $id){
-                        $count = Invoice::leftJoin('orders' , 'orders.invoice_id' , 'invoices.id')->where('orders.product_id', $id)->count();
-                        if(Product::whereId($id)->value("quantity") > $count){
-                            unset($ids[$index]);
-                        }
-                    }
-                }
+            // Get product IDs that are fully booked
+            $excludedIds = $productQuery
+                ->groupBy('products.id', 'products.quantity')
+                ->havingRaw('products.quantity <= COUNT(orders.id)')
+                ->pluck('products.id');
 
-            }
-            $products = Product::whereNotIn('id' , $ids)->where('products.quantity' ,">=" , 1)->where('section_id' , $request->section_id)->get();
-            return response()->json(['data' =>$products], 200);
+            // Get available products
+            $products = Product::whereNotIn('id', $excludedIds)
+                ->where('quantity', '>=', 1)
+                ->where('section_id', $request->section_id)
+                ->get();
+
+            return response()->json(['data' => $products], 200);
+
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
 
     public function pay(string $id)
     {
@@ -261,12 +252,12 @@ class InvoiceController extends Controller
     {
         $parent_sections = $this->getSections($status === 'pending' ? 1 : 0);
         $invoice = self::getInvoice($id);
-  
+
 
         $invoice->products = json_decode($invoice->products, true);
         $invoice->additions = json_decode($invoice->additions, true);
 
- 
+
         $invoice->products = is_array($invoice->products) ? array_values(array_filter($invoice->products)) : [];
         $invoice->additions = is_array($invoice->additions) ? array_values(array_filter($invoice->additions)) : [];
 

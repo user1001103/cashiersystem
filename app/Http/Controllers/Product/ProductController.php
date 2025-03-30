@@ -25,8 +25,7 @@ class ProductController extends Controller
             return abort('404');
         }
         $section = Section::with('products')->select('sections.id' , 'name')->findOrFail($id);
-        $products = $section->products()->paginate(PAGINATE);
-
+        $products = $section->products()->orderBy('products.size')->paginate(PAGINATE);
         return view('products.index' , ['section' => $section , 'products' => $products ]);
     }
 
