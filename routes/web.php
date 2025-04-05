@@ -111,9 +111,3 @@ Route::middleware('auth')->group(function(){
 
     // Route::get('/send-whatsapp', [WhatsAppController::class, 'sendWhatsAppMessage']);
 });
-
-
-Route::get('/test' , function()
-{
-    return Product::getFreeProduct(1);
-});
