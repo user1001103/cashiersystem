@@ -1,6 +1,7 @@
 <?php
 
 
+use App\Traits\Product;
 use App\Models\OrderPricing;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -109,4 +110,10 @@ Route::middleware('auth')->group(function(){
 
 
     // Route::get('/send-whatsapp', [WhatsAppController::class, 'sendWhatsAppMessage']);
+});
+
+
+Route::get('/test' , function()
+{
+    return Product::getFreeProduct(1);
 });

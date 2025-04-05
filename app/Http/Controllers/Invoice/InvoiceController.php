@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\Product;
+use App\Traits\Product As ProductTrait;
 use App\Models\Section;
 use App\Models\Addition;
 use Illuminate\Http\Request;
@@ -20,7 +21,7 @@ use App\Http\Resources\invoiceUpdate;
 
 class InvoiceController extends Controller
 {
-    use InvoiceProcessing;
+    use InvoiceProcessing , ProductTrait;
 
     private $invoice;
 
@@ -135,15 +136,28 @@ class InvoiceController extends Controller
             });
 
             // Get product IDs that are fully booked
-            $excludedIds = $productQuery
+
+            if ($request->status === 'inactive') {
+            $excludedIds = Product::select('products.id')
+                ->where('products.section_id', $request->section_id)
+                ->leftJoin('orders', 'orders.product_id', '=', 'products.id')
+                ->leftJoin('invoices', 'invoices.id', '=', 'orders.invoice_id')
+                ->where('invoices.status', 'inactive')
                 ->groupBy('products.id', 'products.quantity')
                 ->havingRaw('products.quantity <= COUNT(orders.id)')
                 ->pluck('products.id');
+            } else {
+                $excludedIds = $productQuery
+                    ->groupBy('products.id', 'products.quantity')
+                    ->havingRaw('products.quantity <= COUNT(orders.id)')
+                    ->pluck('products.id');
+            }
 
             // Get available products
             $products = Product::whereNotIn('id', $excludedIds)
                 ->where('quantity', '>=', 1)
                 ->where('section_id', $request->section_id)
+                ->orderBy('products.size')
                 ->get();
 
             return response()->json(['data' => $products], 200);
@@ -198,9 +212,9 @@ class InvoiceController extends Controller
                 foreach ($request->get('list-product') as $products) {
                     unset($products['section_id']);
                     $products['invoice_id'] = $invoice->id;
-                    if($request->status == 'inactive'){
-                        Product::whereId($products['product_id'])->decrement('quantity');
-                    }
+                    // if($request->status == 'inactive'){
+                    //     Product::whereId($products['product_id'])->decrement('quantity');
+                    // }
                     $order =  Order::create($products);
                     event(new RegisterOrderPricing($order->id , $order->payment));
                 }

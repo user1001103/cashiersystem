@@ -54,7 +54,12 @@
                         <thead>
                           <tr>
                             <th>#</th>
-                            <th>العدد</th>
+                            <th>العدد الاساسي</th>
+                            @if ($section->status)
+                            <th>عدد الايجار</th>
+                            @else
+                            <th>عدد البيع</th>
+                            @endif
                             <th>اللون</th>
                             <th>المقاس</th>
                             <th>الموديل</th>
@@ -69,6 +74,9 @@
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ $product->quantity ?? "لا توجد"}}</td>
+                            <td style="color: {{ $section->status == 1 ? 'green' : 'red' }}">
+                                {{ $product->invoice_count }}
+                            </td>
                             <td>{{ $product->color ?? "لا توجد"}}</td>
                             <td>{{ $product->size  ?? "لا توجد"}}</td>
                             <td>{{ $product->model ?? "لا توجد" }}</td>

@@ -9,11 +9,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
+use App\Traits\Product as TraitsProduct;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-    use File;
+    use File , TraitsProduct;
     /**
      * Display a listing of the resource.
      */
@@ -24,8 +25,12 @@ class ProductController extends Controller
         {
             return abort('404');
         }
-        $section = Section::with('products')->select('sections.id' , 'name')->findOrFail($id);
-        $products = $section->products()->orderBy('products.size')->paginate(PAGINATE);
+        $section = Section::select('id'  , 'status', 'name')->findOrFail($id);
+        // $products = $section->products()->orderBy('products.size')->paginate(PAGINATE);
+        // return $products;
+
+        $products = static::getProductsBySectionId($id);
+        // return $products;
         return view('products.index' , ['section' => $section , 'products' => $products ]);
     }
 
