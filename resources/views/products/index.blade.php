@@ -55,11 +55,12 @@
                           <tr>
                             <th>#</th>
                             <th>العدد الاساسي</th>
-                            @if ($section->status)
+                            @if ($status)
                             <th>عدد الايجار</th>
                             @else
                             <th>عدد البيع</th>
                             @endif
+                            <th>العدد اللي تم استلافه</th>
                             <th>اللون</th>
                             <th>المقاس</th>
                             <th>الموديل</th>
@@ -74,9 +75,10 @@
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ $product->quantity ?? "لا توجد"}}</td>
-                            <td style="color: {{ $section->status == 1 ? 'green' : 'red' }}">
-                                {{ $product->invoice_count }}
+                            <td style="color: {{ $status == 1 ? 'green' : 'red' }}">
+                                {{ $product->orders_count }}
                             </td>
+                            <td style="color: blue; font-weight: bold; text-align: center;">{{$product?->type == 'borrow' ? 'مستلف': $product->sum_borrow ?? 0 }}</td>
                             <td>{{ $product->color ?? "لا توجد"}}</td>
                             <td>{{ $product->size  ?? "لا توجد"}}</td>
                             <td>{{ $product->model ?? "لا توجد" }}</td>
@@ -101,16 +103,35 @@
                             @endif
                             <td>{{\Carbon\Carbon::parse($product->created_at)->format('Y-m-d') }}</td>
                             <td class="text-center">
-                                <div class="btn-group">
-                                    <a href="{{ route('products.edit' , $product->id) }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-success">
-                                            <i class="fe fe-16 fe-edit"></i>&nbsp;تعديل
+                                @if ($product->type === 'basic')
+                                    <div class="btn-group">
+                                        <a href="{{ route('products.edit' , $product->id) }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-success">
+                                                <i class="fe fe-16 fe-edit"></i>&nbsp;تعديل
+                                            </button>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-btn" data-toggle="modal" data-target="#deleteModal" data-product-id="{{ $product->id }}" disabled>
+                                            <i class="fe fe-16 fe-delete"></i>&nbsp;حذف
                                         </button>
-                                    </a>
-                                    <button type="button" class="btn btn-sm btn-outline-danger delete-btn" data-toggle="modal" data-target="#deleteModal" data-product-id="{{ $product->id }}" disabled>
-                                        <i class="fe fe-16 fe-delete"></i>&nbsp;حذف
-                                    </button>
-                                </div>
+
+                                        <a href="#" class="openBorrowModal"
+                                            data-toggle="modal"
+                                            data-target="#borrowModal"
+                                            data-product-id="{{ $product->id }}"
+                                            data-status="{{ $status }}"
+                                            >
+                                            <button type="button" class="btn btn-sm btn-outline-primary">
+                                                <i class="fe fe-16 fe-arrow-right"></i>&nbsp;استلاف
+                                            </button>
+                                            </a>
+
+
+                                    </div>
+                                @else
+                                <button type="button" class="btn btn-sm btn-outline-danger delete-btn" data-toggle="modal" data-target="#deleteModal" data-product-id="{{ $product->id }}" disabled>
+                                    <i class="fe fe-16 fe-delete"></i>&nbsp;حذف
+                                </button>
+                                @endif
                             </td>
                         </tr>
                         @endforeach
@@ -143,6 +164,67 @@
                             </div>
                         </div>
 
+<!-- Borrow Button -->
+{{-- <a href="#" data-toggle="modal" data-target="#borrowModal" data-product-id="{{ $product->id }}">
+    <button type="button" class="btn btn-sm btn-outline-primary">
+        <i class="fe fe-16 fe-arrow-right"></i>&nbsp;استلاف
+    </button>
+</a> --}}
+
+<div class="modal fade" id="borrowModal" tabindex="-1" role="dialog" aria-labelledby="borrowModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="borrowModalLabel">استلاف المنتج</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ route('products.saveBorrow'  , ['status' => $status ] ) }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="product_id" id="product_id">
+                    {{-- <input type="hidden" name="status" id="status"> --}}
+                    <div class="form-group">
+                        <label for="quantity">العدد</label>
+                        <input type="number" name="quantity" id="quantity" class="form-control" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="type">النوع</label>
+                        <select name="type" id="type" class="form-control">
+                            <option value="personal">شخصي</option>
+                            <option value="impersonal">غير شخصي</option>
+                        </select>
+                    </div>
+
+                    <input type="hidden" name="from" value="{{ $section->id }}">
+                    <div id="impersonalFields" style="display: none;">
+                        <div class="form-group">
+                            <label for="parent_section">القسم الرئيسي</label>
+                            <select name="parent_section" id="parent_section" class="form-control" required>
+                                <option value="">اختر قسم</option>
+                                @foreach($parent_section as $section)
+                                    <option value="{{ $section->id }}">{{ $section->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="child_section">القسم الفرعي</label>
+                            <select name="child_section" id="child_section" class="form-control">
+                                <option value="">اختر قسم فرعي</option>
+                                <!-- Child sections will be populated based on parent section -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
                     </div>
                   </div>
                 </div> <!-- simple table -->
@@ -151,6 +233,7 @@
           </div> <!-- .row -->
         </div> <!-- .container-fluid -->
 @endsection
+
 @section('script')
 <script src="/js/jquery.min.js"></script>
 <script src="/js/popper.min.js"></script>
@@ -165,6 +248,89 @@
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-56159088-1"></script>
 
+
+<script>
+    // Toggle impersonal fields visibility
+    document.getElementById('type').addEventListener('change', function () {
+        var impersonalFields = document.getElementById('impersonalFields');
+        impersonalFields.style.display = this.value === 'impersonal' ? 'block' : 'none';
+    });
+
+    // Fetch child sections based on parent section
+    document.getElementById('parent_section').addEventListener('change', function () {
+        var parentId = this.value;
+        var childSectionSelect = document.getElementById('child_section');
+
+        if (parentId) {
+            fetch(`/get-section?parent_id=${parentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    childSectionSelect.innerHTML = '<option value="">اختر قسم فرعي</option>';
+                    data.data.forEach(function (child) {
+                        var option = document.createElement('option');
+                        option.value = child.id;
+                        option.textContent = child.name;
+                        childSectionSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching child sections:', error);
+                });
+        } else {
+            childSectionSelect.innerHTML = '<option value="">اختر قسم فرعي</option>';
+        }
+    });
+
+    // Set product ID in hidden input when modal opens & disable button
+    // document.querySelectorAll('.borrow-btn').forEach(function (btn) {
+    //     btn.addEventListener('click', function () {
+    //         const productId = this.getAttribute('data-product-id');
+    //         const status = this.getAttribute('data-status');
+    //         const invoiceCount = this.getAttribute('data-invoice-count');
+
+    //         document.getElementById('product_id').value = productId;
+    //         document.getElementById('status').value = status;
+
+    //         const innerButton = this.querySelector('button');
+    //         if (innerButton) {
+    //             innerButton.disabled = true;
+    //             innerButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> جارٍ المعالجة...';
+    //         }
+    //     });
+    // });
+
+    // $('#borrowModal').on('hidden.bs.modal', function () {
+    //     document.querySelectorAll('.borrow-btn button').forEach(btn => {
+    //         btn.disabled = false;
+    //         btn.innerHTML = '<i class="fe fe-16 fe-arrow-right"></i>&nbsp;استلاف';
+    //     });
+    // });
+
+    // Optional: Re-enable button when modal is closed (if needed)
+    $('#borrowModal').on('hidden.bs.modal', function () {
+        document.querySelectorAll('.borrow-btn button').forEach(btn => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fe fe-16 fe-arrow-right"></i>&nbsp;استلاف';
+        });
+    });
+
+    document.querySelectorAll('.openBorrowModal').forEach(function (el) {
+    el.addEventListener('click', function () {
+        // Dynamically get the product ID and status when the button is clicked
+        const productId = this.dataset.productId;
+        const status = this.dataset.status;
+
+        // Set the values in hidden inputs within the modal form
+        document.getElementById('product_id').value = productId;
+        document.getElementById('status').value = status;
+
+        // console.log('Product ID:', productId);  // Debugging log
+        // console.log('Status:', status);  // Debugging log
+    });
+});
+
+
+</script>
 
 <script>
     $(document).ready(function() {

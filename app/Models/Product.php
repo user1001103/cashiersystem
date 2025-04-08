@@ -10,7 +10,7 @@ class Product extends Model
     use HasFactory;
     protected $fillable = [
         'section_id',
-        'name',
+        'type',
         'color',
         'model',
         'size',

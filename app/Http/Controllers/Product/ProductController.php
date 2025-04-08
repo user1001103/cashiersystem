@@ -20,18 +20,22 @@ class ProductController extends Controller
      */
     public function index(string $id)
     {
-        $count = Section::whereSection_id($id)->count();
-        if($count > 0)
+        $parent_section = Section::whereSection_id($id)->count();
+        if($parent_section > 0)
         {
             return abort('404');
         }
-        $section = Section::select('id'  , 'status', 'name')->findOrFail($id);
-        // $products = $section->products()->orderBy('products.size')->paginate(PAGINATE);
-        // return $products;
+        $section = Section::select('id', 'status' , 'section_id' ,'name')->findOrFail($id);
 
-        $products = static::getProductsBySectionId($id);
-        // return $products;
-        return view('products.index' , ['section' => $section , 'products' => $products ]);
+        $status = $section->status ?? Section::whereId($section?->section_id)->value('status');
+        if($status === 0)
+        {
+            $parentSection = Section::RentSections()->get();
+        }else{
+            $parentSection = Section::SaleSections()->get();
+        }
+        $products = static::getProductsBySectionId($id , $status);
+        return view('products.index' , ['section' => $section , 'parent_section' => $parentSection , 'products' => $products , 'status' => $status]);
     }
 
     /**
@@ -105,6 +109,10 @@ class ProductController extends Controller
         {
             Storage::delete($product->image);
         }
+        // if($product->type == 'borrow')
+        // {
+
+        // }
         $product->delete();
         return back()->with('success' , 'تم حذف المنتج بنجاح!');
     }

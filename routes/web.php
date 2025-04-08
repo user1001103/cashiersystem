@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Cookie;
 use App\Http\Controllers\WhatsAppController;
 use App\Http\Controllers\Sales\SalesController;
+use App\Http\Controllers\Borrow\BorrowController;
 use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Invoice\InvoiceController;
@@ -61,6 +62,7 @@ Route::middleware('auth')->group(function(){
         Route::resource('/section' ,SectionsController::class);
 
         Route::resource('/products', ProductController::class)->except(['index' , 'create']);
+        Route::post('/save-borrow', [BorrowController::class, 'saveBorrow'])->name('products.saveBorrow');
         Route::get('/product/{id}', [ProductController::class, 'index'])->name('products.index');
         Route::get('/product/create/{id}', [ProductController::class, 'create'])->name('products.create');
         Route::get('/products-search', [ProductController::class, 'search'])->name('product.search');

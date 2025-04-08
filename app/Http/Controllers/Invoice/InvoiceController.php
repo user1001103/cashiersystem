@@ -148,6 +148,34 @@ class InvoiceController extends Controller
      */
     public function store(InvoiceRequest $request)
     {
+        $counts = [];
+        $index = 1;
+        foreach ($request->input('list-product') as $item) {
+            $productId = $item['product_id'];
+            $sectionId = $item['section_id'] ??  $item['parent_id'];
+
+            if (isset($counts['product_id'][$productId])) {
+                $counts['product_id'][$productId] = ["id" => $productId , 'section_id' => $sectionId, 'count' => $counts['product_id'][$productId]['count'] + 1];
+            } else {
+                $counts['product_id'][$productId] = ["id" => $productId ,'section_id' => $sectionId, 'count' => $index];
+            }
+        }
+        foreach($counts['product_id'] as $product)
+        {
+            $count = static::getCountProductBorrowByProductId($product['id']);
+            if($request->status === 'inactive'){
+                $quantityNotFree = static::getCountOrdersProductBySectionId($product['section_id'], $product['id'], 'sale');
+            }else{
+                $quantityNotFree = static::getCountOrdersProductBySectionId($product['section_id'], $product['id'], 'rent' , $request->date_of_receipt , $request->return_date);
+            }
+
+            $sum = $product['count'] + $count + $quantityNotFree->count;
+
+            if($sum > Product::whereId($product['id'])->value('quantity'))
+            {
+                return back()->with('error' , 'فيه مشكله في عدد المنتجات')->withInput();;
+            }
+        }
         DB::beginTransaction();
         try
         {
@@ -274,25 +302,25 @@ class InvoiceController extends Controller
     }
     public function restore(string $id)
     {
-        $product_ids = DB::table('invoices')
-        ->where('invoices.id' , '=' , $id)
-        ->where('status' , 'inactive')
-        ->leftJoin('orders' , 'orders.invoice_id' , 'invoices.id')
-        ->leftJoin('products' , 'products.id' , 'orders.product_id')
-        ->select("product_id")
-        ->get();
+        // $product_ids = DB::table('invoices')
+        // ->where('invoices.id' , '=' , $id)
+        // ->where('status' , 'inactive')
+        // ->leftJoin('orders' , 'orders.invoice_id' , 'invoices.id')
+        // ->leftJoin('products' , 'products.id' , 'orders.product_id')
+        // ->select("product_id")
+        // ->get();
 
         DB::table('invoices')
         ->where('invoices.id' , '=' , $id)
         ->update(['restored_at' => now()]);
 
-        $ids = array_filter($product_ids->all(), function($item) {
-            return $item->product_id !== null;
-        });
+        // $ids = array_filter($product_ids->all(), function($item) {
+        //     return $item->product_id !== null;
+        // });
 
-        foreach($ids as $id){
-            Product::whereId($id->product_id)->increment('quantity');
-        }
+        // foreach($ids as $id){
+        //     Product::whereId($id->product_id)->increment('quantity');
+        // }
         return back()->with('success' , 'تم استرجاع المنتج في المخزن بنجاح');
     }
 
