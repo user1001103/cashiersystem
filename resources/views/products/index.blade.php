@@ -201,7 +201,7 @@
                     <div id="impersonalFields" style="display: none;">
                         <div class="form-group">
                             <label for="parent_section">القسم الرئيسي</label>
-                            <select name="parent_section" id="parent_section" class="form-control" required>
+                            <select name="parent_section" id="parent_section" class="form-control">
                                 <option value="">اختر قسم</option>
                                 @foreach($parent_section as $section)
                                     <option value="{{ $section->id }}">{{ $section->name }}</option>
@@ -280,31 +280,6 @@
             childSectionSelect.innerHTML = '<option value="">اختر قسم فرعي</option>';
         }
     });
-
-    // Set product ID in hidden input when modal opens & disable button
-    // document.querySelectorAll('.borrow-btn').forEach(function (btn) {
-    //     btn.addEventListener('click', function () {
-    //         const productId = this.getAttribute('data-product-id');
-    //         const status = this.getAttribute('data-status');
-    //         const invoiceCount = this.getAttribute('data-invoice-count');
-
-    //         document.getElementById('product_id').value = productId;
-    //         document.getElementById('status').value = status;
-
-    //         const innerButton = this.querySelector('button');
-    //         if (innerButton) {
-    //             innerButton.disabled = true;
-    //             innerButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> جارٍ المعالجة...';
-    //         }
-    //     });
-    // });
-
-    // $('#borrowModal').on('hidden.bs.modal', function () {
-    //     document.querySelectorAll('.borrow-btn button').forEach(btn => {
-    //         btn.disabled = false;
-    //         btn.innerHTML = '<i class="fe fe-16 fe-arrow-right"></i>&nbsp;استلاف';
-    //     });
-    // });
 
     // Optional: Re-enable button when modal is closed (if needed)
     $('#borrowModal').on('hidden.bs.modal', function () {

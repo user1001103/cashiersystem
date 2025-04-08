@@ -173,7 +173,7 @@ class InvoiceController extends Controller
 
             if($sum > Product::whereId($product['id'])->value('quantity'))
             {
-                return back()->with('error' , 'فيه مشكله في عدد المنتجات')->withInput();;
+                return back()->with('error' , 'فيه مشكله في عدد المنتجات')->withInput();
             }
         }
         DB::beginTransaction();
@@ -274,8 +274,13 @@ class InvoiceController extends Controller
         {
             $this->destroy($id);
             $this->store($request);
-            DB::commit();
-            return to_route('invoice.index')->with(['success' => 'تم تعديل الفاتوره بنجاح']);
+            if(!session()->has('error'))
+            {
+                DB::commit();
+                return to_route('invoice.index')->with(['success' => 'تم تعديل الفاتوره بنجاح']);
+            }
+            DB::rollBack();
+            return back()->with('error','خطا');
         }catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error','خطا');

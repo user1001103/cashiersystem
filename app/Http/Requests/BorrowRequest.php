@@ -23,8 +23,8 @@ class BorrowRequest extends FormRequest
     {
         return [
             'quantity' => 'required|numeric|min:1',
-            'from' => 'required|exists:sections,id',
             'type' => 'required|in:personal,impersonal',  // Validates the type to be either personal or impersonal
+            'from' => 'required|exists:sections,id',
             'parent_section' => 'required_if:type,impersonal|not_in:'. $this->from,  // Requires parent_section if type is 'impersonal'
             'child_section' => 'nullable',  // No validation for child_section, as it's not required
         ];

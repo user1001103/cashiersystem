@@ -63,6 +63,8 @@ Route::middleware('auth')->group(function(){
 
         Route::resource('/products', ProductController::class)->except(['index' , 'create']);
         Route::post('/save-borrow', [BorrowController::class, 'saveBorrow'])->name('products.saveBorrow');
+        Route::get('/borrows', [BorrowController::class, 'index'])->name('borrow.index');
+        Route::delete('/borrow-delete/{id}', [BorrowController::class, 'destroy'])->name('borrows.destroy');
         Route::get('/product/{id}', [ProductController::class, 'index'])->name('products.index');
         Route::get('/product/create/{id}', [ProductController::class, 'create'])->name('products.create');
         Route::get('/products-search', [ProductController::class, 'search'])->name('product.search');

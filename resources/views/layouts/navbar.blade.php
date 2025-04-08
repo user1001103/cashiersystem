@@ -46,6 +46,7 @@
                 @method('DELETE')
                 @csrf
             </form>
+            <a class="dropdown-item" href="{{ route('borrow.index') }}">السلف</a>
             <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('changeRole-form').submit();">
                 تغيير الصلاحيات
             </a>

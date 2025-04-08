@@ -15,14 +15,28 @@ class BorrowController extends Controller
 {
     use ProductTrait;
 
+    public function index()
+    {
+        $borrows = DB::table('borrows')
+        ->leftJoin('products' , 'borrows.product_id' , 'products.id')
+        ->where('borrows.type', '=' , 'personal')
+        ->select('borrows.id','products.color' , 'products.model' , 'products.size' , 'borrows.quantity')
+        ->paginate(PAGINATE);
+        // return $borrows;
+        return view('borrows.index' , ['borrows' => $borrows]);
+    }
+
     public function saveBorrow(BorrowRequest $request)
     {
-
-        $childrenIds = Section::where('section_id' , $request->parent_section)->pluck('id');
-        if(!$childrenIds->isEmpty() && is_null($request->child_section))
+        if($request->type != 'personal')
         {
-            return back()->with("error","لازم تختار القسم الفرعي");
+            $childrenIds = Section::where('section_id' , $request->parent_section)->pluck('id');
+            if(!$childrenIds->isEmpty() && is_null($request->child_section))
+            {
+                return back()->with("error","لازم تختار القسم الفرعي");
+            }
         }
+
         if($request->status == 0)
         {
             return $this->borrowToRent($request);
@@ -101,6 +115,24 @@ class BorrowController extends Controller
                     ]);
                 }
 
+            }else{
+                $borrows = DB::table('borrows')
+                ->where('product_id' , $request->product_id)
+                ->where('type' , '=', 'personal')
+                ->where('from' , $request->from);
+                if($borrows->count() > 0)
+                {
+                    $borrows->increment('quantity' , $request->quantity);
+                }else{
+
+                    DB::table('borrows')->insert([
+                        "quantity" => $request->quantity,
+                        "type" => $request->type,
+                        "from" => $request->from,
+                        'product_id' => $request->product_id,
+                        'borrowed_at' => now()
+                    ]);
+                }
             }
             DB::commit();
             return back()->with('success' , 'تم الاستلاف بنجاح');
@@ -108,5 +140,11 @@ class BorrowController extends Controller
             DB::rollback();
             return back()->with('error' , 'error');
         }
+    }
+
+    public function destroy(Request $request ,$id)
+    {
+        DB::table('borrows')->delete($id);
+        return back()->with('success' , 'تم حذف الاستلاف بنجاح');
     }
 }

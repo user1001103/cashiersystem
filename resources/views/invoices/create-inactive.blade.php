@@ -373,7 +373,7 @@ $(document).ready(function() {
                                 let productSelect = $('#' + productId);
                                 let productOptions = productSelect.find('option');
 
-                                if (productOptions.length === 0) {
+                                // if (productOptions.length === 0) {
                                     // Retry getProductData if product not loaded
                                     getProductData(
                                         data.section_id || data.parent_id,
@@ -382,13 +382,13 @@ $(document).ready(function() {
                                         data.return_date,
                                         data.product_id,
                                         null,
-                                        10 // Retry up to 10 times
+                                        5 // Retry up to 5 times
                                     );
-                                } else {
-                                    productSelect.val(data.product_id).trigger('change');
-                                }
+                                // } else {
+                                //     productSelect.val(data.product_id).trigger('change');
+                                // }
                             },
-                            10 // Initial retry count for getProductData
+                            5 // Initial retry count for getProductData
                         );
                     } else {
                         // Retry getSection if section select didn't populate

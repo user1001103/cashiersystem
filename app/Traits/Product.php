@@ -56,59 +56,63 @@ trait Product
 
     public static function getFreeProduct(Request $request)
     {
-        $start = Carbon::parse($request->date_of_receipt ?? Carbon::now())->format('Y-m-d');
-        $end = Carbon::parse($request->return_date ?? Carbon::now())->format('Y-m-d');
+        // $start = Carbon::parse($request->date_of_receipt ?? Carbon::now())->format('Y-m-d');
+        // $end = Carbon::parse($request->return_date ?? Carbon::now())->format('Y-m-d');
 
-        $productQuery = ProductModel::select('products.id', 'products.quantity')
-        ->where('products.section_id', $request->section_id)
-        ->leftJoin('orders', 'orders.product_id', '=', 'products.id')
-        ->leftJoin('invoices', 'invoices.id', '=', 'orders.invoice_id')
-        ->leftJoin('borrows', 'products.id', '=', 'borrows.product_id');
-        // ->whereNull('invoices.restored_at');
+        // $productQuery = ProductModel::select('products.id', 'products.quantity')
+        // ->where('products.section_id', $request->section_id)
+        // ->leftJoin('orders', 'orders.product_id', '=', 'products.id')
+        // ->leftJoin('invoices', 'invoices.id', '=', 'orders.invoice_id')
+        // ->leftJoin('borrows', 'products.id', '=', 'borrows.product_id');
+        // // ->whereNull('invoices.restored_at');
 
-        // Apply filtering based on status
-        $productQuery->where(function ($query) use ($start, $end, $request) {
-            $query->whereBetween('date_of_receipt', [$start, $end])
-                ->orWhereBetween('return_date', [$start, $end]);
+        // // Apply filtering based on status
+        // $productQuery->where(function ($query) use ($start, $end, $request) {
+        //     $query->whereBetween('date_of_receipt', [$start, $end])
+        //         ->orWhereBetween('return_date', [$start, $end]);
 
-            if ($request->status === 'pending') {
-                $query->orWhere(function ($q) use ($start, $end) {
-                    $q->where('date_of_receipt', '<', $start)
-                    ->where('return_date', '>', $end);
-                });
-            } else {
-                $query->orWhere(function ($q) use ($start, $end) {
-                    $q->where('date_of_receipt', '>', $start)
-                    ->orWhere('return_date', '>', $end);
-                });
-            }
-        });
+        //     if ($request->status === 'pending') {
+        //         $query->orWhere(function ($q) use ($start, $end) {
+        //             $q->where('date_of_receipt', '<', $start)
+        //             ->where('return_date', '>', $end);
+        //         });
+        //     } else {
+        //         $query->orWhere(function ($q) use ($start, $end) {
+        //             $q->where('date_of_receipt', '>', $start)
+        //             ->orWhere('return_date', '>', $end);
+        //         });
+        //     }
+        // });
 
-        // Get product IDs that are fully booked
+        // // Get product IDs that are fully booked
 
-        if ($request->status === 'inactive') {
-        $excludedIds = ProductModel::select('products.id')
-            ->where('products.section_id', $request->section_id)
-            ->leftJoin('orders', 'orders.product_id', '=', 'products.id')
-            ->leftJoin('invoices', 'invoices.id', '=', 'orders.invoice_id')
-            ->leftJoin('borrows', 'products.id', '=', 'borrows.product_id')
-            ->where('invoices.status', 'inactive')
-            ->whereNull('invoices.restored_at')
-            ->groupBy('products.id', 'products.quantity')
-            ->havingRaw('products.quantity <= COUNT(orders.id) + SUM(borrows.quantity)')
-            ->pluck('products.id');
-        } else {
-            $excludedIds = $productQuery
-                ->whereNull('invoices.restored_at')
-                ->groupBy('products.id', 'products.quantity')
-                // ->havingRaw('products.quantity <= COUNT(orders.id)')
-                ->havingRaw('products.quantity <= COUNT(orders.id) + SUM(borrows.quantity)')
-                ->pluck('products.id');
-        }
-
-        // Get available products
-        $products = ProductModel::whereNotIn('id', $excludedIds)
-            ->where('quantity', '>=', 1)
+        // if ($request->status === 'inactive') {
+        // $excludedIds = ProductModel::select('products.id')
+        //     ->where('products.section_id', $request->section_id)
+        //     ->leftJoin('orders', 'orders.product_id', '=', 'products.id')
+        //     ->leftJoin('invoices', 'invoices.id', '=', 'orders.invoice_id')
+        //     ->leftJoin('borrows', 'products.id', '=', 'borrows.product_id')
+        //     ->where('invoices.status', 'inactive')
+        //     ->whereNull('invoices.restored_at')
+        //     ->groupBy('products.id', 'products.quantity')
+        //     ->havingRaw('products.quantity <= COUNT(orders.id) + SUM(borrows.quantity)')
+        //     ->pluck('products.id');
+        // } else {
+        //     $excludedIds = $productQuery
+        //         ->whereNull('invoices.restored_at')
+        //         ->groupBy('products.id', 'products.quantity')
+        //         // ->havingRaw('products.quantity <= COUNT(orders.id)')
+        //         ->havingRaw('products.quantity <= COUNT(orders.id) + SUM(borrows.quantity)')
+        //         ->pluck('products.id');
+        // }
+        // // return $excludedIds;
+        // // Get available products
+        // $products = ProductModel::whereNotIn('id', $excludedIds)
+        //     ->where('quantity', '>=', 1)
+        //     ->where('section_id', $request->section_id)
+        //     ->orderBy('products.size')
+        //     ->get();
+        $products = ProductModel::where('quantity', '>=', 1)
             ->where('section_id', $request->section_id)
             ->orderBy('products.size')
             ->get();
