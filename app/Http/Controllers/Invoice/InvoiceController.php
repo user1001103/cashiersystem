@@ -148,32 +148,34 @@ class InvoiceController extends Controller
      */
     public function store(InvoiceRequest $request)
     {
+        if(!is_null($request->input('list-product'))){
         $counts = [];
         $index = 1;
-        foreach ($request->input('list-product') as $item) {
-            $productId = $item['product_id'];
-            $sectionId = $item['section_id'] ??  $item['parent_id'];
+            foreach ($request->input('list-product') as $item) {
+                $productId = $item['product_id'];
+                $sectionId = $item['section_id'] ??  $item['parent_id'];
 
-            if (isset($counts['product_id'][$productId])) {
-                $counts['product_id'][$productId] = ["id" => $productId , 'section_id' => $sectionId, 'count' => $counts['product_id'][$productId]['count'] + 1];
-            } else {
-                $counts['product_id'][$productId] = ["id" => $productId ,'section_id' => $sectionId, 'count' => $index];
+                if (isset($counts['product_id'][$productId])) {
+                     $counts['product_id'][$productId] = ["id" => $productId , 'section_id' => $sectionId, 'count' => $counts['product_id'][$productId]['count'] + 1];
+                } else {
+                    $counts['product_id'][$productId] = ["id" => $productId ,'section_id' => $sectionId, 'count' => $index];
+                }
             }
-        }
-        foreach($counts['product_id'] as $product)
-        {
-            $count = static::getCountProductBorrowByProductId($product['id']);
-            if($request->status === 'inactive'){
-                $quantityNotFree = static::getCountOrdersProductBySectionId($product['section_id'], $product['id'], 'sale');
-            }else{
-                $quantityNotFree = static::getCountOrdersProductBySectionId($product['section_id'], $product['id'], 'rent' , $request->date_of_receipt , $request->return_date);
-            }
-
-            $sum = $product['count'] + $count + $quantityNotFree->count;
-
-            if($sum > Product::whereId($product['id'])->value('quantity'))
+            foreach($counts['product_id'] as $product)
             {
-                return back()->with('error' , 'فيه مشكله في عدد المنتجات')->withInput();
+                $count = static::getCountProductBorrowByProductId($product['id']);
+                if($request->status === 'inactive'){
+                    $quantityNotFree = static::getCountOrdersProductBySectionId($product['section_id'], $product['id'], 'sale');
+                }else{
+                    $quantityNotFree = static::getCountOrdersProductBySectionId($product['section_id'], $product['id'], 'rent' , $request->date_of_receipt , $request->return_date);
+                }
+
+                $sum = $product['count'] + $count + $quantityNotFree->count;
+
+                if($sum > Product::whereId($product['id'])->value('quantity'))
+                {
+                    return back()->with('error' , 'فيه مشكله في عدد المنتجات')->withInput();
+                }
             }
         }
         DB::beginTransaction();
