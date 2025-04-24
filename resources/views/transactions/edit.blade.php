@@ -35,8 +35,8 @@
                             <!-- Name Field -->
                             <div class="form-row">
                                 <div class="form-group col-md-6">
-                                    <label for="name">اسم العامل</label>
-                                    <input name="name" value="{{ old('name', $transaction->name) }}" type="text" class="form-control" id="name" placeholder="أدخل اسم العامل">
+                                    <label for="name">الاسم</label>
+                                    <input name="name" value="{{ old('name', $transaction->name) }}" type="text" class="form-control" id="name" placeholder="أدخل الاسم">
                                 </div>
 
                                 <!-- Note Field -->
