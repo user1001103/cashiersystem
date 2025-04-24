@@ -22,9 +22,11 @@ class RecentInvoices extends JsonResource
             "price" => $this->price,
             "payment" => $this->payment,
             "data" => $this->when(
-            $this->size || $this->model || $this->color ,
-            $this->section_title . '-: ' . $this->size ."-". $this->model .'-' . $this->color,
-            $this->title . '-' . $this->data
+                $this->size || $this->model || $this->color,
+                $this->section_title . '-: ' . collect([$this->size, $this->model, $this->color])
+                    ->filter()
+                    ->implode('-'),
+                !isset($this->data) ? $this->title  : $this->title . ' - ' . $this->data
             )
         ];
     }

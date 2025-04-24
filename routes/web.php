@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Cookie;
 use App\Http\Controllers\WhatsAppController;
 use App\Http\Controllers\Sales\SalesController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\Borrow\BorrowController;
 use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -102,6 +103,9 @@ Route::middleware('auth')->group(function(){
         Route::get('/sales/weekly/orders/{start_week}/{end_week}/{status}', [SalesWeeklyController::class, 'showOrders'])->name('sales.orders');
         Route::get('/get-recent-invoices', [InvoiceController::class, 'getRecentInvoices'])->name('recent.invoices');
         Route::get('/get-recent-invoices-search', [InvoiceController::class, 'searchRecentInvoices'])->name('invoice.recent.search');
+
+        Route::resource('transactions', TransactionController::class);
+
     });
 
     Route::resource('/clients', ClientController::class);

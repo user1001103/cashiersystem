@@ -97,19 +97,17 @@
                                         </button>
                                     </form>
                                 @endif
-
-                                {{-- Restore Button (outside dropdown) --}}
-                                @if (is_null($invoice->restored_at))
+                                @if (is_null($invoice->restored_at) && (($invoice->status === 'inactive' && $invoice->created_at > now()->subDays(7)) || $invoice->status === 'pending'))
                                     <form action="{{ route('invoice.restore', $invoice->id) }}" method="post" class="d-inline-block">
                                         @csrf
                                         @method("PUT")
                                         <button type="button" class="btn btn-sm btn-outline-warning restore-btn"
-                                            data-toggle="modal" data-target="#verticalModal"
-                                            data-invoice-id="{{ $invoice->id }}">
-                                            <i class="fe fe-rotate-ccw"></i> استرجاع
-                                        </button>
-                                    </form>
-                                @endif
+                                                data-toggle="modal" data-target="#verticalModal"
+                                                data-invoice-id="{{ $invoice->id }}">
+                                                <i class="fe fe-rotate-ccw"></i> استرجاع
+                                            </button>
+                                        </form>
+                                    @endif
                             @endcan
 
                             {{-- Dropdown menu for edit, delete, print --}}

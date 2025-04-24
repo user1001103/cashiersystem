@@ -139,7 +139,7 @@
                                 @endif
 
                                 {{-- Restore Button (outside dropdown) --}}
-                                @if (is_null($invoice->restored_at))
+                                @if (is_null($invoice->restored_at) && (($invoice->status === 'inactive' && $invoice->created_at > now()->subDays(7)) || $invoice->status === 'pending'))
                                     <form action="{{ route('invoice.restore', $invoice->id) }}" method="post" class="d-inline-block">
                                         @csrf
                                         @method("PUT")

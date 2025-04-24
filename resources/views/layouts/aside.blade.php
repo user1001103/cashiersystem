@@ -83,13 +83,13 @@
                </a>
                <ul class="collapse list-unstyled pl-4 w-100" id="show">
                 <li class="nav-item">
-                    <a class="nav-link pl-3" href="{{ route('invoice.index') }}">
-                      <span class="ml-1 item-text">جميع الفواتير</span>
-                    </a>
-                  </li>
-                  <li class="nav-item">
                     <a class="nav-link pl-3" href="{{ route('invoice.pending') }}">
                       <span class="ml-1 item-text">فواتير الايجار</span>
+                    </a>
+                  </li>
+                <li class="nav-item">
+                    <a class="nav-link pl-3" href="{{ route('invoice.index') }}">
+                      <span class="ml-1 item-text">جميع الفواتير</span>
                     </a>
                   </li>
                   <li class="nav-item">
@@ -290,7 +290,21 @@
             </ul>
           </li>
         </ul>
-
+        <p class="text-muted nav-heading mt-4 mb-1">
+            <span>الملاحظات</span>
+        </p>
+        <ul class="navbar-nav flex-fill w-100 mb-2">
+        <li class="nav-item dropdown">
+            <a href="#note" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
+              <i class="fe fe-edit-3 fe-16"></i>
+              <span class="ml-3 item-text">الملاحظات</span>
+            </a>
+            <ul class="collapse list-unstyled pl-4 w-100" id="note">
+              <a class="nav-link pl-3" href="{{ route('transactions.index') }}"><span class="ml-1">عرض</span></a>
+            </ul>
+          </li>
+        </ul>
+      </ul>
         @endcan
         <p class="text-muted nav-heading mt-4 mb-1">
             <span>العملاء</span>
