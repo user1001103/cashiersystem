@@ -236,6 +236,20 @@
 </ul>
 <ul class="navbar-nav flex-fill w-100 mb-2">
     <li class="nav-item dropdown">
+    <a href="#deposits" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
+        <i class="fe fe-inbox fe-16"></i>
+        <span class="ml-3 item-text">العربونات</span>
+    </a>
+    <ul class="collapse list-unstyled pl-4 w-100" id="deposits">
+        <li class="nav-item">
+        <a class="nav-link pl-3" href="{{ route('sales.deposit') }}">
+            <span class="ml-1 item-text">الكل</span>
+        </a>
+    </ul>
+</li>
+</ul>
+<ul class="navbar-nav flex-fill w-100 mb-2">
+    <li class="nav-item dropdown">
     <a href="#archive" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
         <i class="fe fe-archive fe-16"></i>
         <span class="ml-3 item-text">الارشيف</span>
@@ -260,21 +274,6 @@
     </li>
 </ul>
     </li>
-
-        <ul class="navbar-nav flex-fill w-100 mb-2">
-            <li class="nav-item dropdown">
-            <a href="#deposits" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
-                <i class="fe fe-inbox fe-16"></i>
-                <span class="ml-3 item-text">العربونات</span>
-            </a>
-            <ul class="collapse list-unstyled pl-4 w-100" id="deposits">
-                <li class="nav-item">
-                <a class="nav-link pl-3" href="{{ route('sales.deposit') }}">
-                    <span class="ml-1 item-text">الكل</span>
-                </a>
-            </ul>
-            </li>
-        </ul>
 
         <p class="text-muted nav-heading mt-4 mb-1">
             <span>اخري</span>

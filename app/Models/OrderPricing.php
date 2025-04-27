@@ -37,18 +37,18 @@ class OrderPricing extends Model
                 DB::raw('invoices.status as status'),
                 DB::raw('order_pricing.deleted_at'),
                 DB::raw('SUM(order_pricing.price) as total_price'),
-                DB::raw("DATE_FORMAT(DATE_SUB(changed_at, INTERVAL ((WEEKDAY(changed_at) + 2) % 7) DAY), '%Y-%m-%d') as week_start_date"),
-                DB::raw("DATE_FORMAT(DATE_ADD(DATE_SUB(changed_at, INTERVAL ((WEEKDAY(changed_at) + 2) % 7) DAY), INTERVAL 6 DAY), '%Y-%m-%d') as week_end_date")
+                DB::raw("DATE_FORMAT(DATE_SUB(COALESCE(date_of_receipt, invoices.created_at), INTERVAL ((WEEKDAY(COALESCE(date_of_receipt, invoices.created_at)) + 2) % 7) DAY), '%Y-%m-%d') as week_start_date"),
+                DB::raw("DATE_FORMAT(DATE_ADD(DATE_SUB(COALESCE(date_of_receipt, invoices.created_at), INTERVAL ((WEEKDAY(COALESCE(date_of_receipt, invoices.created_at)) + 2) % 7) DAY), INTERVAL 6 DAY), '%Y-%m-%d') as week_end_date")
             )
             ->leftJoin('orders' , 'order_pricing.order_id' , '=' , 'orders.id')
             ->leftJoin('invoices' , 'orders.invoice_id' , '=' , 'invoices.id')
             ->groupBy(
                 DB::raw('invoices.status'),
-                DB::raw("DATE_FORMAT(DATE_SUB(changed_at, INTERVAL ((WEEKDAY(changed_at) + 2) % 7) DAY), '%Y-%m-%d')"),
-                DB::raw("DATE_FORMAT(DATE_ADD(DATE_SUB(changed_at, INTERVAL ((WEEKDAY(changed_at) + 2) % 7) DAY), INTERVAL 6 DAY), '%Y-%m-%d')")
+                DB::raw("DATE_FORMAT(DATE_SUB(COALESCE(date_of_receipt, invoices.created_at), INTERVAL ((WEEKDAY(COALESCE(date_of_receipt, invoices.created_at)) + 2) % 7) DAY), '%Y-%m-%d')"),
+                DB::raw("DATE_FORMAT(DATE_ADD(DATE_SUB(COALESCE(date_of_receipt, invoices.created_at), INTERVAL ((WEEKDAY(COALESCE(date_of_receipt, invoices.created_at)) + 2) % 7) DAY), INTERVAL 6 DAY), '%Y-%m-%d')")
             )
             ->having('total_price' , '>' , 0)
-            ->orderBy(DB::raw("DATE_FORMAT(DATE_SUB(changed_at, INTERVAL ((WEEKDAY(changed_at) + 2) % 7) DAY), '%Y-%m-%d')"), 'desc');
+            ->orderBy(DB::raw("DATE_FORMAT(DATE_SUB(COALESCE(date_of_receipt, invoices.created_at), INTERVAL ((WEEKDAY(COALESCE(date_of_receipt, invoices.created_at)) + 2) % 7) DAY), '%Y-%m-%d')"), 'desc');
     }
     public static function GetWeeklyWhere($start_date , $end_date , $status)
     {
@@ -57,10 +57,10 @@ class OrderPricing extends Model
         ->leftJoin('products', 'orders.product_id', '=', 'products.id')
         ->leftJoin('additions', 'orders.addition_id', '=', 'additions.id')
         ->leftJoin('invoices', 'orders.invoice_id', '=', 'invoices.id')
-        ->where(DB::raw("DATE_FORMAT(order_pricing.changed_at, '%Y-%m-%d')"), '>=', $start_date)
-        ->where(DB::raw("DATE_FORMAT(order_pricing.changed_at, '%Y-%m-%d')"), '<=', $end_date)
+        ->where(DB::raw("DATE_FORMAT(COALESCE(date_of_receipt, invoices.created_at), '%Y-%m-%d')"), '>=', $start_date)
+        ->where(DB::raw("DATE_FORMAT(COALESCE(date_of_receipt, invoices.created_at), '%Y-%m-%d')"), '<=', $end_date)
         ->where('invoices.status', '=', $status)
         ->where('order_pricing.price' , '>' , 0)
-        ->select('order_pricing.price', 'order_pricing.changed_at',  'orders.id' , 'products.id AS product_id' , 'invoices.client_id', 'additions.id AS addition_id');
+        ->select('order_pricing.price', DB::raw('COALESCE(date_of_receipt, invoices.created_at)'),  'orders.id' , 'products.id AS product_id' , 'invoices.client_id', 'additions.id AS addition_id');
     }
 }
