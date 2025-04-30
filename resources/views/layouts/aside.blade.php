@@ -322,7 +322,7 @@
       </ul>
     </nav>
   </aside>
-<script>
+{{-- <script>
     document.addEventListener("DOMContentLoaded", function () {
     let addInvoiceBtn = document.querySelector(".add-invoice");
     let submenu = document.querySelector(".submenu");
@@ -332,4 +332,4 @@
     });
 });
 
-</script>
+</script> --}}

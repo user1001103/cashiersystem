@@ -91,7 +91,7 @@
 <script src="/js/config.js"></script>
 <script src="/js/apps.js"></script>
 <!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-56159088-1"></script>
+{{-- <script async src="https://www.googletagmanager.com/gtag/js?id=UA-56159088-1"></script> --}}
 <script>
   window.dataLayer = window.dataLayer || [];
 

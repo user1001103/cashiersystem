@@ -169,7 +169,7 @@
 <script src="/js/config.js"></script>
 <script src="/js/apps.js"></script>
 <!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="/assets/js/googletagmanger.js"></script>
+{{-- <script async src="/assets/js/googletagmanger.js"></script> --}}
 <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() {
@@ -184,7 +184,7 @@
     });
 </script>
 
-{{-- 
+{{--
 <script>
     $(document).ready(function(){
         let debounceTimer;

@@ -302,7 +302,7 @@
 <script src="/js/config.js"></script>
 <script src="/js/apps.js"></script>
 <!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="/assets/js/googletagmanger.js"></script>
+{{-- <script async src="/assets/js/googletagmanger.js"></script> --}}
 <script>
     $(document).ready(function () {
         $('.btn-outline-success').prop('disabled', false);

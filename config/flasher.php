@@ -89,7 +89,7 @@ return array(
     |
     | This will copy the necessary assets to your application's public folder.
     */
-    'use_cdn' => true,
+    'use_cdn' => false,
 
     /*
     |---------------------------------------------------------------------------

@@ -19,7 +19,7 @@
     content: attr(data-note);
     position: absolute;
     top: 0;
-    left: 50%;
+    left: 30%;
     background-color: #fff;
     color: #333;
     padding: 5px;
@@ -142,8 +142,6 @@
 @endsection
 
 @section('script')
-{{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
-{{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script> --}}
 <script src="/js/jquery.min.js"></script>
 <script src="/js/popper.min.js"></script>
 <script src="/js/moment.min.js"></script>

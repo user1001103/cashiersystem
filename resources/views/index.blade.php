@@ -113,7 +113,7 @@
 }
 
           </style>
-       
+
           <!-- info small box -->
           <div class="row">
             <div class="col-md-4 mb-4">
@@ -623,7 +623,7 @@
 <script src='/js/dropzone.min.js'></script>
 <script src='/js/uppy.min.js'></script>
 <script src='/js/quill.min.js'></script>
-<script>
+{{-- <script>
   $('.select2').select2(
   {
     theme: 'bootstrap4',
@@ -802,8 +802,8 @@
       });
     }, false);
   })();
-</script>
-<script>
+</script> --}}
+{{-- <script>
   var uptarg = document.getElementById('drag-drop-area');
   if (uptarg)
   {
@@ -818,17 +818,16 @@
       plugins: ['Webcam']
     }).use(Uppy.Tus,
     {
-      endpoint: 'https://master.tus.io/files/'
+    //   endpoint: 'https://master.tus.io/files/'
     });
     uppy.on('complete', (result) =>
     {
       console.log('Upload complete! We’ve uploaded these files:', result.successful)
     });
   }
-</script>
+</script> --}}
 <script src="/js/apps.js"></script>
 <!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-56159088-1"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
 
