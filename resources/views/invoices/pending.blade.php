@@ -63,13 +63,28 @@
                     <tbody id="invoice-table">
                     @foreach ($invoices as $invoice)
                       <tr>
-                        <td><a href="{{ route('clients.show' , $invoice->id) }}" style="
-                            text-decoration: none;
-                            color: #3498db; /* Link color */
-                            font-weight: 600; /* Bold text */
-                            border-radius: 5px; /* Rounded corners */
-                            transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
-                        ">{{ $invoice->client->name }}</a></td>
+                        @php
+                        $date = $invoice->date_of_receipt ?? $invoice->created_at;
+                        $isFuture = false;
+
+                       if( ($invoice->orders->sum('price') - $invoice->orders->sum('payment') <> 0) && $date < \Carbon\Carbon::now())
+                       {
+                           $isFuture = true;
+                       }
+                    @endphp
+
+               <td>
+                   <a href="{{ route('clients.show', $invoice->id) }}" style="
+                       text-decoration: none;
+                       color: {{ $isFuture ? 'red' : '#3498db' }};
+                       font-weight: 600;
+                       border-radius: 5px;
+                       transition: background-color 0.3s ease, color 0.3s ease;
+                   ">
+                       {{ $invoice->client->name }}
+                   </a>
+               </td>
+
                         <td>
                             <a style="text-decoration: none;" href="{{ route('invoice.show' , $invoice->id) }}"></i>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: red">{{ $invoice->orders->count() }}</span></a>
                         </td>
