@@ -47,7 +47,7 @@ class InvoiceController extends Controller
         ->orderByRaw('ISNULL(restored_at) DESC')
         ->orderByRaw('IF(total_payment < total_price, 1, 0) DESC') // Prioritize invoices with unpaid amounts
         ->orderBy('invoices.created_at', 'desc')
-        ->paginate(PAGINATE);
+        ->paginate(perPage: PAGINATE);
 
         return view('invoices.index' , ['invoices' => $invoices]);
     }
@@ -333,86 +333,60 @@ class InvoiceController extends Controller
 
     public function search(Request $request)
     {
-        $query = $request->input('search');
-        $status = $request->input('status');
-        $start_date = $request->input('start_date');
-        $end_date = $request->input('end_date');
+        try{
+            $query = $request->input('search');
+            $status = $request->input('status');
+            $start_date = $request->input('start_date');
+            $end_date = $request->input('end_date');
 
-
-        $queryBuilder = DB::table('invoices')
-            ->rightJoin('clients', 'clients.id', 'invoices.client_id')
-            ->rightJoin('orders', 'orders.invoice_id', 'invoices.id')
-            ->select(
-                'invoices.id',
-                'invoices.status',
-                'invoices.date_of_receipt',
-                'invoices.return_date',
-                'invoices.created_at',
-                'invoices.restored_at',
-                'clients.name AS name',
-                'clients.address AS address',
-                'clients.phone AS phone',
-                DB::raw('SUM(orders.price) AS price'),
-                DB::raw('SUM(orders.payment) AS payment'),
-                DB::raw('COUNT(orders.invoice_id) AS count')
+            $queryBuilder = Invoice::withTrashed()
+            ->with(['client', 'orders' => function ($q) {
+                $q->orderByRaw('IF(orders.payment < orders.price, 1, 0) DESC')
+                    ->orderBy('orders.created_at', 'desc');
+            }])
+            ->whereHas('client', function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%");
+            })
+            ->selectRaw('invoices.*,
+                (SELECT SUM(orders.price) FROM orders WHERE orders.invoice_id = invoices.id) as total_price,
+                (SELECT SUM(orders.payment) FROM orders WHERE orders.invoice_id = invoices.id) as total_payment'
             )
-            ->groupBy(
-                'invoices.id',
-                'invoices.status',
-                'clients.name',
-                'clients.address',
-                'clients.phone',
-                'invoices.date_of_receipt',
-                'invoices.return_date',
-                'invoices.restored_at',
-                'invoices.created_at'
-            );
+            ->orderByRaw('ISNULL(restored_at) DESC')
+            ->orderByRaw('IF(total_payment < total_price, 1, 0) DESC') // Prioritize invoices with unpaid amounts
+            ->orderBy('invoices.created_at', 'desc');
+            if ($status) {
+                $queryBuilder->where('invoices.status', $status);
+            }
+            if ($start_date) {
+                $queryBuilder->where(function ($subQuery) use ($start_date) {
+                    $subQuery->WhereDate('invoices.date_of_receipt', '>=', $start_date);
+                });
+            }
 
-        if ($query) {
-            $queryBuilder->where(function ($subQuery) use ($query) {
-                $subQuery->where('clients.name', 'like', "%{$query}%");
-            });
+            if ($end_date) {
+                $queryBuilder->where(function ($subQuery) use ($end_date) {
+                    $subQuery->whereDate('invoices.return_date', '<=', $end_date);
+                });
+            }
+
+            $invoices = $queryBuilder->paginate(PAGINATE);
+            return response()->json([
+                    'tableRows' => view('partials.invoices_table', ['invoices' => $invoices])->render(),
+                    'pagination' => $invoices->appends(['search' => $query])->links()->render()
+                ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-
-        if ($status) {
-            $queryBuilder->where('invoices.status', $status);
-        }
-        if ($start_date) {
-            $queryBuilder->where(function ($subQuery) use ($start_date) {
-                $subQuery->WhereDate('invoices.date_of_receipt', '>=', $start_date);
-            });
-        }
-
-        if ($end_date) {
-            $queryBuilder->where(function ($subQuery) use ($end_date) {
-                $subQuery->whereDate('invoices.return_date', '<=', $end_date);
-            });
-        }
-
-        $invoices = $queryBuilder->orderByRaw('ISNULL(restored_at) DESC')->paginate(PAGINATE);
-
-        return response()->json([
-            'tableRows' => view('partials.invoices_table', ['invoices' => $invoices])->render(),
-            'pagination' => $invoices->appends(['search' => $query, 'status' => $status])->links()->render()
-        ]);
     }
 
     public function pending()
     {
-        // $invoices = Invoice::withTrashed()
-        // ->where('status' ,'pending')
-        // ->with(['client','orders'])
-        // ->orderByRaw('ISNULL(restored_at) DESC')
-        // ->paginate(PAGINATE);
         $invoices = $this->getInvoiceByStatus('pending');
-
         return view('invoices.pending' , ['invoices' => $invoices]);
     }
     public function inactive()
     {
         $invoices = $this->getInvoiceByStatus('inactive');
-        // $invoices = Invoice::withTrashed()->where('status' ,'inactive')->with(['client','orders'])->orderByRaw('ISNULL(restored_at) DESC')->paginate(PAGINATE);
         return view('invoices.inactive' , ['invoices' => $invoices]);
     }
 

@@ -61,6 +61,9 @@ class OrderPricing extends Model
         ->where(DB::raw("DATE_FORMAT(COALESCE(date_of_receipt, invoices.created_at), '%Y-%m-%d')"), '<=', $end_date)
         ->where('invoices.status', '=', $status)
         ->where('order_pricing.price' , '>' , 0)
-        ->select('order_pricing.price', DB::raw('COALESCE(date_of_receipt, invoices.created_at)'),  'orders.id' , 'products.id AS product_id' , 'invoices.client_id', 'additions.id AS addition_id');
+        ->groupBy(
+            DB::raw('order_pricing.order_id'),
+        )
+        ->select( DB::raw('SUM(order_pricing.price) AS price'), DB::raw('COALESCE(date_of_receipt, invoices.created_at)'),  'orders.id' , 'products.id AS product_id' , 'invoices.client_id', 'additions.id AS addition_id');
     }
 }

@@ -58,7 +58,7 @@
                         <th>العمليات</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="invoice-table">
                     @foreach ($invoices as $invoice)
                       <tr>
                         <td><a href="{{ route('clients.show' , $invoice->id) }}" style="
@@ -344,7 +344,7 @@
     gtag('js', new Date());
     gtag('config', 'UA-56159088-1');
   </script>
-<script>
+{{-- <script>
     $(document).ready(function(){
         let debounceTimer;
 
@@ -385,7 +385,7 @@
             fetchInvoices(page);
         });
     });
-    </script>
+    </script> --}}
 <script>
     $(document).ready(function() {
         $('.restore-btn').prop('disabled', false);
@@ -424,7 +424,7 @@
 </script>
 <script src="/assets/js/moment.min.js"></script>
 <script src="/assets/js/pikaday.js"></script>
-<script>
+{{-- <script>
     $(document).ready(function() {
         // Debounce function to limit the frequency of function execution
         let debounceTimer;
@@ -439,7 +439,7 @@
         // Fetch invoices from the server with optional pagination
         function fetchInvoices(page = 1) {
             let search = $('#search').val();
-            let status = $('#status').val();
+            let status = $('#status').val() || 'inactive';
             let start_date = $('#start_date').val();
             let end_date = $('#end_date').val();
             $.ajax({
@@ -543,6 +543,35 @@
 
         updateDateContainers();
     });
-    </script>
+    </script> --}}
+    <script>
+        $(document).ready(function() {
+     function fetchInvoices() {
+         let query = $('#search').val();
+         let status = 'inactive';
+         let start_date = $('#start_date').val();
+         let end_date = $('#end_date').val();
 
+         $.ajax({
+             url: "{{ route('invoice.search') }}",
+             type: "GET",
+             data: {
+                 search: query,
+                 status: status,
+                 start_date: start_date,
+                 end_date: end_date
+             },
+             success: function(data) {
+                // console.log(data);
+                $('#invoice-table').html(data.tableRows);
+            }
+         });
+     }
+
+     // Trigger fetch on any input change
+     $('#search, #status, #start_date, #end_date').on('input change', fetchInvoices);
+ });
+
+
+     </script>
 @endsection

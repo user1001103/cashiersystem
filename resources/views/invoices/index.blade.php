@@ -97,7 +97,7 @@
                         <th>العمليات</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody id ="invoice-table">
                     @foreach ($invoices as $invoice)
                       <tr>
                         <td><a href="{{ route('clients.show' , $invoice->id) }}" style="
@@ -392,7 +392,7 @@
 </script>
 
 
-<script>
+{{-- <script>
     $(document).ready(function(){
         let debounceTimer;
 
@@ -433,7 +433,7 @@
             fetchInvoices(page);
         });
     });
-    </script>
+    </script> --}}
 <script>
     $(document).ready(function() {
         $('.restore-btn').prop('disabled', false);
@@ -472,7 +472,7 @@
 </script>
 <script src="/assets/js/moment.min.js"></script>
 <script src="/assets/js/pikaday.js"></script>
-<script>
+{{-- <script>
     $(document).ready(function() {
         // Debounce function to limit the frequency of function execution
         let debounceTimer;
@@ -591,5 +591,94 @@
 
         updateDateContainers();
     });
+    </script> --}}
+
+    <script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    // var statusSelect = document.getElementById('inputState5');
+    // var dateContainer1 = document.getElementById('dateContainer1');
+    // var dateContainer2 = document.getElementById('dateContainer2');
+    var gregorianDateInput1 = document.getElementById('start_date');
+    var gregorianDateInput2 = document.getElementById('end_date');
+
+    var today = new Date();
+
+    // Check if there are old values for both date_of_receipt and return_date
+    var oldDateValue1 = gregorianDateInput1.value;
+    var oldDateValue2 = gregorianDateInput2.value;
+    var initialDate1 = oldDateValue1 ? moment(oldDateValue1).toDate() : today;
+    var initialDate2 = oldDateValue2 ? moment(oldDateValue2).toDate() : moment(today).add(2, 'days').toDate();
+
+    // Initialize Pikaday for the second date input
+    var picker2 = new Pikaday({
+        field: gregorianDateInput2,
+        format: 'YYYY-MM-DD',
+        i18n: {
+            previousMonth: 'الشهر السابق',
+            nextMonth: 'الشهر القادم',
+            months: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
+            weekdays: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+            weekdaysShort: ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت']
+        },
+        defaultDate: initialDate2,
+        setDefaultDate: !!oldDateValue2, // Set default only if an old value exists
+        isRTL: true
+    });
+
+    // Initialize Pikaday for the first date input
+    var picker1 = new Pikaday({
+        field: gregorianDateInput1,
+        format: 'YYYY-MM-DD',
+        i18n: {
+            previousMonth: 'الشهر السابق',
+            nextMonth: 'الشهر القادم',
+            months: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
+            weekdays: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+            weekdaysShort: ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت']
+        },
+        defaultDate: initialDate1,
+        setDefaultDate: !!oldDateValue1, // Set default only if an old value exists
+        onSelect: function(date) {
+            var gregorianDate = moment(date).format('YYYY-MM-DD');
+            gregorianDateInput1.value = gregorianDate;
+
+            // Set the second date picker to one day after the selected date
+            var nextDay = moment(date).add(2, 'days').toDate();
+            picker2.setDate(nextDay);
+        },
+        isRTL: true
+    });
+
+});
+
+       $(document).ready(function() {
+    function fetchInvoices() {
+        let query = $('#search').val();
+        let status = $('#status').val();
+        let start_date = $('#start_date').val();
+        let end_date = $('#end_date').val();
+
+        $.ajax({
+            url: "{{ route('invoice.search') }}",
+            type: "GET",
+            data: {
+                search: query,
+                status: status,
+                start_date: start_date,
+                end_date: end_date
+            },
+            success: function(data) {
+                // console.log(data);
+                $('#invoice-table').html(data.tableRows);
+            }
+        });
+    }
+
+    // Trigger fetch on any input change
+    $('#search, #status, #start_date, #end_date').on('input change', fetchInvoices);
+});
+
+
     </script>
 @endsection

@@ -250,6 +250,7 @@
             type: "GET",
             data: { search: query },
             success: function(data) {
+                // console.log(data);
                 $('#recent-invoice-table').html(data); // Update the table body
             }
         });
