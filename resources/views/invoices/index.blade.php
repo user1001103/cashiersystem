@@ -102,10 +102,10 @@
                       <tr>
 
                         @php
-                             $date = $invoice->date_of_receipt ?? $invoice->created_at;
+                             $date = $invoice->return_date ?? $invoice->created_at;
                              $isFuture = false;
 
-                            if( ($invoice->orders->sum('price') - $invoice->orders->sum('payment') <> 0) && $date < \Carbon\Carbon::now())
+                            if(is_null($invoice->restored_at) && $date < \Carbon\Carbon::now() && $invoice->status === 'pending')
                             {
                                 $isFuture = true;
                             }
